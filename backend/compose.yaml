@@ -1,0 +1,19 @@
+name: golf-community
+
+# Lokal PostgreSQL för utveckling. Starta med: docker compose up -d
+# Uppgifterna här används bara lokalt på din dator.
+services:
+  postgres:
+    image: postgres:17
+    container_name: golf-community-db
+    environment:
+      POSTGRES_DB: golfcommunity
+      POSTGRES_USER: golf
+      POSTGRES_PASSWORD: golf
+    ports:
+      - "5432:5432"
+    volumes:
+      - golf-community-data:/var/lib/postgresql/data
+
+volumes:
+  golf-community-data:
