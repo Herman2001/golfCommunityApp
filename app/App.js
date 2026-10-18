@@ -4,9 +4,6 @@ import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from './src/context/AuthContext';
 import RootNavigator from './src/navigation/RootNavigator';
 
-console.log('RootNavigator:', typeof RootNavigator, RootNavigator);
-console.log('AuthProvider:', typeof AuthProvider, AuthProvider);
-
 export default function App() {
   return (
     <SafeAreaProvider>
