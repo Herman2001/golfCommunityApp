@@ -14,7 +14,7 @@ function Separator() {
   return <View style={styles.separator} />;
 }
 
-export default function PostListScreen({ navigation }) {
+export default function PostListScreen({ navigation, route}) {
   const [posts, setPosts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -53,6 +53,13 @@ const loadPosts = useCallback(async ({ refreshing = false } = {}) => {
     loadPosts();
   }, [loadPosts]);
 
+  const deletedPostId = route.params?.deletedPostId;
+  useEffect(() => {
+    if (deletedPostId) {
+      setPosts((current) => current.filter((post) => post.id !== deletedPostId));
+    }
+  }, [deletedPostId]);
+
   function renderEmpty() {
     if (isLoading) {
       return <LoadingView message="Hämtar inlägg..." />;
@@ -66,6 +73,7 @@ const loadPosts = useCallback(async ({ refreshing = false } = {}) => {
         />
       );
     }
+
     return (
       <EmptyState
         title="Inga inlägg här än"

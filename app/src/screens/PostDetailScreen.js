@@ -1,16 +1,285 @@
-import { Button, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { deletePost, fetchPost } from '../api/posts';
+import { fetchComments, deleteComment, createComment } from '../api/comments';
 import { useAuth } from '../context/AuthContext';
+import CommentItem from '../components/posts/CommentItem';
+import PrimaryButton from '../components/ui/PrimaryButton';
+import ErrorMessage from '../components/ui/ErrorMessage';
+import ErrorView from '../components/ui/ErrorView';
+import LoadingView from '../components/ui/LoadingView';
+import { colors } from '../constants/colors';
+import { formatPrice, formatRelativeDate } from '../utils/format';
+import CommentForm from '../components/posts/CommentForm';
+
 
 export default function PostDetailScreen({ route, navigation }) {
   const { postId } = route.params;
-  const { isLoggedIn } = useAuth();
+  const { user, isLoggedIn } = useAuth();
+
+  // Inlägget / posten
+  const [post, setPost] = useState(null);
+  const [isLoadingPost, setIsLoadingPost] = useState(true);
+  const [errorPost, setErrorPost] = useState(null);
+
+// Kommentar har en egen laddning och fel. Dvs att om det blir något fel med kommentarerna så visas inlägget ändå.
+const [comments, setComments] = useState(null);
+const [isLoadingComments, setIsLoadingComments] = useState(true);
+const [commentsError, setCommentsError] = useState(null);
+
+const [isDeleting, setIsDeleting] = useState(false);
+
+const loadPost = useCallback(async () => {
+  setIsLoadingPost(true);
+  setErrorPost(null);
+  try {
+    setPost(await fetchPost(postId));
+  } catch (e) {
+    setErrorPost(e);
+  } finally {
+    setIsLoadingPost(false);
+  }
+}, [postId]);
+
+const loadComments = useCallback(async () => {
+  setIsLoadingComments(true);
+  setCommentsError(null);
+  try {
+    setComments(await fetchComments(postId));
+  } catch (e) {
+    setCommentsError(e.message);
+  } finally {
+    setIsLoadingComments(false);
+  }
+}, [postId]);
+
+// Hämtar båda samtidigt, utan await så att det ska ladda snabbare.
+  useEffect(() => {
+    loadPost();
+    loadComments();
+  }, [loadPost, loadComments]);
+
+  async function handleShare() {
+    try {
+      await Share.share({
+        title: post.title,
+        message: `${post.title}\n\n${post.body}\n\nDelat från Golf Community`,
+      });
+    } catch (e) {
+      console.warn('Kunde inte dela', e);
+      Alert.alert('Kunde inte dela', 'Försök igen senare.')
+    }
+  }
+
+  function confirmDelete() {
+    Alert.alert('Ta bort inlägget?', 'Det går inte att ångra.', [
+      { text: 'Avbryt', style: 'cancel' },
+      { text: 'Ta bort', style: 'destructive', onPress: handleDelete },
+    ]);
+  }
+
+  async function handleDelete() {
+    setIsDeleting(true);
+    try {
+      await deletePost(post.id);
+      Alert.alert('Inlägget är borttaget');
+      navigation.popTo('PostList', {deletedPostId: post.id});
+    } catch (e) {
+      setIsDeleting(false);
+      Alert.alert('Kunde inte ta bort inlägget', e.message);
+    }
+  }
+
+  async function handleAddComment(text) {
+    const newComment = await createComment(postId, { body: text });
+    // Lägg till den nya kommentaren sist, utan att hämta om alla.
+    setComments((current) => [...current, newComment]);
+  }
+
+  function confirmDeleteComment(comment) {
+    Alert.alert('Ta bort kommentaren?', 'Det går inte att ångra.', [
+      { text: 'Avbryt', style: 'cancel' },
+      { text: 'Ta bort', style: 'destructive', onPress: () => handleDeleteComment(comment.id) },
+    ]);
+  }
+
+async function handleDeleteComment(commentId) {
+  try {
+    await deleteComment(commentId);
+    setComments((current) => current.filter((comment) => comment.id !== commentId));
+  } catch (e) {
+    Alert.alert('Kunde inte ta bort kommentaren', e.message);
+  }
+}
+
+  if (isLoadingPost) {
+    return (
+      <View style={styles.screen}>
+        <LoadingView message="Hämtar inlägget..."/>
+      </View>
+    );
+  }
+
+  if (errorPost) {
+    const notFound = errorPost.status === 404;
+    return (
+      <View style={styles.screen}>
+        <ErrorView
+          title={notFound ? 'Inlägget finns inte' : 'Inlägget gick inte att hänmta'}
+          message={notFound ? 'Det kan ha tagits bort' : errorPost.message}
+          onRetry={notFound ? undefined : loadPost}
+        />
+      </View>
+    );
+  }
+
+  const isOwner = user !== null && user.id === post.author.id;
+  const isEdited = post.updatedAt !== post.createdAt;
 
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-      <Text>Detaljvy för inlägg {postId}</Text>
-      {isLoggedIn && (
-        <Button title="Redigera" onPress={() => navigation.navigate('EditPost', { postId })} />
+    <ScrollView 
+      style={styles.screen} 
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+      automaticallyAdjustKeyboardInsets
+    >
+      <Text style={styles.category}>{post.category.name}</Text>
+      <Text style={styles.title} accessibilityRole="header">{post.title}</Text>
+      <Text style={styles.meta}>
+        {post.author.username} · {formatRelativeDate(post.createdAt)}
+        {isEdited ? ' · redigerad' : ''}
+      </Text>
+
+      {post.price != null || post.location ? (
+        <View style={styles.details}>
+          {post.price != null ? <Text style={styles.price}>{formatPrice(post.price)}</Text> : null}
+          {post.location ? <Text style={styles.location}>{post.location}</Text> : null}
+        </View>
+      ) : null}
+
+      <Text style={styles.body}>{post.body}</Text>
+
+      <View style={styles.actions}>
+        <PrimaryButton title="Dela inlägget" variant="secondary" onPress={handleShare} />
+        {isOwner ? (
+          <>
+            <PrimaryButton
+              title="Redigera"
+              onPress={() => navigation.navigate('EditPost', { postId: post.id })}
+              disabled={isDeleting}
+            />
+            <PrimaryButton
+              title="Ta bort"
+              variant="danger"
+              onPress={confirmDelete}
+              loading={isDeleting}
+            />
+          </>
+        ) : null}
+      </View>
+
+      <Text style={styles.sectionTitle} accessibilityRole="header">
+        Kommentarer{isLoadingComments ? '' : ` (${comments.length})`}
+      </Text>
+
+      {isLoadingComments ? (
+        <ActivityIndicator color={colors.primary} />
+      ) : commentsError ? (
+        <View style={styles.commentsError}>
+          <ErrorMessage message="Kunde inte hämta kommentarerna." />
+          <PrimaryButton title="Försök igen" variant="secondary" onPress={loadComments} />
+        </View>
+      ) : comments.length === 0 ? (
+        <Text style={styles.empty}>Inga kommentarer än.</Text>
+      ) : (
+        <View style={styles.comments}>
+          {comments.map((comment) => (
+            <CommentItem 
+            key={comment.id} 
+            comment={comment}
+            onDelete={user?.id === comment.author.id ? () => confirmDeleteComment(comment) : undefined}
+             />
+          ))}
+        </View>
       )}
-    </View>
+
+      {isLoggedIn ? (
+        <CommentForm onSubmit={handleAddComment} />
+      ) : (
+        <PrimaryButton
+          title="Logga in för att kommentera"
+          variant="secondary"
+          onPress={() => navigation.navigate('ProfileTab')}
+      />
+)}
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  content: {
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
+    padding: 16,
+    gap: 12,
+  },
+  category: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  meta: {
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  details: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    alignItems: 'center',
+  },
+  price: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  location: {
+    fontSize: 15,
+    color: colors.textMuted,
+  },
+  body: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.text,
+  },
+  actions: {
+    gap: 8,
+    marginTop: 8,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginTop: 16,
+  },
+  comments: {
+    gap: 8,
+  },
+  commentsError: {
+    gap: 8,
+  },
+  empty: {
+    fontSize: 15,
+    color: colors.textMuted,
+  },
+});
