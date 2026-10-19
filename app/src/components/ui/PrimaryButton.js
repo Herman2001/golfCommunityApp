@@ -8,6 +8,7 @@ import { colors } from '../../constants/colors';
 export default function PrimaryButton({ title, onPress, loading = false, disabled = false, variant = 'primary' }) {
   const isDisabled = disabled || loading;
   const isSecondary = variant === 'secondary';
+  const isDanger = variant === 'danger';
 
   return (
     <Pressable
@@ -21,6 +22,7 @@ export default function PrimaryButton({ title, onPress, loading = false, disable
         isSecondary && styles.secondary,
         pressed && styles.pressed,
         isDisabled && styles.disabled,
+        isDanger && styles.danger,
       ]}
     >
       {loading ? (
@@ -43,6 +45,9 @@ const styles = StyleSheet.create({
   },
   secondary: {
     backgroundColor: 'transparent',
+  },
+  danger: {
+    backgroundColor: colors.error,
   },
   pressed: {
     opacity: 0.8,
