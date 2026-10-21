@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { ActivityIndicator, Alert, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { deletePost, fetchPost } from '../api/posts';
 import { fetchComments, deleteComment, createComment } from '../api/comments';
@@ -28,6 +29,19 @@ const [isLoadingComments, setIsLoadingComments] = useState(true);
 const [commentsError, setCommentsError] = useState(null);
 
 const [isDeleting, setIsDeleting] = useState(false);
+
+const isFirstFocus = useRef(true);
+useFocusEffect(
+  useCallback(() => {
+    if (isFirstFocus.current) {
+      isFirstFocus.current = false;
+      return;
+    }
+    fetchPost(postId)
+      .then(setPost)
+      .catch((e) => console.warn('Kunde inte uppdatera inlägget', e.message));
+  }, [postId])
+);
 
 const loadPost = useCallback(async () => {
   setIsLoadingPost(true);
