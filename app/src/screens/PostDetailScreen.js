@@ -1,78 +1,116 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { ActivityIndicator, Alert, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { deletePost, fetchPost } from '../api/posts';
-import { fetchComments, deleteComment, createComment } from '../api/comments';
+import { createComment, deleteComment, fetchComments } from '../api/comments';
 import { useAuth } from '../context/AuthContext';
+import AuthorInfo from '../components/posts/AuthorInfo';
+import CommentForm from '../components/posts/CommentForm';
 import CommentItem from '../components/posts/CommentItem';
-import PrimaryButton from '../components/ui/PrimaryButton';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import ErrorView from '../components/ui/ErrorView';
+import IconButton from '../components/ui/IconButton';
 import LoadingView from '../components/ui/LoadingView';
+import PrimaryButton from '../components/ui/PrimaryButton';
 import { colors } from '../constants/colors';
 import { formatPrice, formatRelativeDate } from '../utils/format';
-import CommentForm from '../components/posts/CommentForm';
-import AuthorInfo from '../components/posts/AuthorInfo';
-
 
 export default function PostDetailScreen({ route, navigation }) {
   const { postId } = route.params;
   const { user, isLoggedIn } = useAuth();
 
-  // Inlägget / posten
+  // Inlägget
   const [post, setPost] = useState(null);
   const [isLoadingPost, setIsLoadingPost] = useState(true);
   const [errorPost, setErrorPost] = useState(null);
 
-// Kommentar har en egen laddning och fel. Dvs att om det blir något fel med kommentarerna så visas inlägget ändå.
-const [comments, setComments] = useState(null);
-const [isLoadingComments, setIsLoadingComments] = useState(true);
-const [commentsError, setCommentsError] = useState(null);
+  // Kommentarerna har egen laddning och eget fel. Går de inte att hämta visas inlägget ändå.
+  const [comments, setComments] = useState([]);
+  const [isLoadingComments, setIsLoadingComments] = useState(true);
+  const [commentsError, setCommentsError] = useState(null);
 
-const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-const isFirstFocus = useRef(true);
-useFocusEffect(
-  useCallback(() => {
-    if (isFirstFocus.current) {
-      isFirstFocus.current = false;
-      return;
+  // post är null medan inlägget hämtas, därför kontrolleras det först.
+  const isOwner = post !== null && user !== null && user.id === post.author.id;
+
+  const loadPost = useCallback(async () => {
+    setIsLoadingPost(true);
+    setErrorPost(null);
+    try {
+      setPost(await fetchPost(postId));
+    } catch (e) {
+      setErrorPost(e);
+    } finally {
+      setIsLoadingPost(false);
     }
-    fetchPost(postId)
-      .then(setPost)
-      .catch((e) => console.warn('Kunde inte uppdatera inlägget', e.message));
-  }, [postId])
-);
+  }, [postId]);
 
-const loadPost = useCallback(async () => {
-  setIsLoadingPost(true);
-  setErrorPost(null);
-  try {
-    setPost(await fetchPost(postId));
-  } catch (e) {
-    setErrorPost(e);
-  } finally {
-    setIsLoadingPost(false);
-  }
-}, [postId]);
+  const loadComments = useCallback(async () => {
+    setIsLoadingComments(true);
+    setCommentsError(null);
+    try {
+      setComments(await fetchComments(postId));
+    } catch (e) {
+      setCommentsError(e.message);
+    } finally {
+      setIsLoadingComments(false);
+    }
+  }, [postId]);
 
-const loadComments = useCallback(async () => {
-  setIsLoadingComments(true);
-  setCommentsError(null);
-  try {
-    setComments(await fetchComments(postId));
-  } catch (e) {
-    setCommentsError(e.message);
-  } finally {
-    setIsLoadingComments(false);
-  }
-}, [postId]);
-
-// Hämtar båda samtidigt, utan await så att det ska ladda snabbare.
+  // Hämtar båda samtidigt (utan await) så att skärmen laddar snabbare.
   useEffect(() => {
     loadPost();
     loadComments();
   }, [loadPost, loadComments]);
+
+  // När skärmen visas igen (t.ex. efter redigering) hämtas inlägget om i bakgrunden.
+  // Första gången hoppas över, eftersom useEffect ovan redan hämtar det.
+  const isFirstFocus = useRef(true);
+  useFocusEffect(
+    useCallback(() => {
+      if (isFirstFocus.current) {
+        isFirstFocus.current = false;
+        return;
+      }
+      fetchPost(postId)
+        .then(setPost)
+        .catch((e) => console.warn('Kunde inte uppdatera inlägget', e.message));
+    }, [postId])
+  );
+
+  // Visar ikonerna för redigera och ta bort i rubrikraden, men bara för inläggets ägare.
+  // Måste stå före de tidiga return-satserna nedan, eftersom hooks alltid ska anropas i samma ordning.
+  useLayoutEffect(() => {
+    if (!isOwner) {
+      navigation.setOptions({ headerRight: undefined });
+      return;
+    }
+
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={styles.headerActions}>
+          <IconButton
+            icon="create-outline"
+            color={colors.primary}
+            accessibilityLabel="Redigera inlägget"
+            onPress={() => navigation.navigate('EditPost', { postId: post.id })}
+            disabled={isDeleting}
+          />
+          {isDeleting ? (
+            <ActivityIndicator color={colors.error} style={styles.headerSpinner} />
+          ) : (
+            <IconButton
+              icon="trash-outline"
+              color={colors.error}
+              accessibilityLabel="Ta bort inlägget"
+              onPress={confirmDelete}
+            />
+          )}
+        </View>
+      ),
+    });
+  }, [navigation, post, isOwner, isDeleting]);
 
   async function handleShare() {
     try {
@@ -82,7 +120,7 @@ const loadComments = useCallback(async () => {
       });
     } catch (e) {
       console.warn('Kunde inte dela', e);
-      Alert.alert('Kunde inte dela', 'Försök igen senare.')
+      Alert.alert('Kunde inte dela', 'Försök igen senare.');
     }
   }
 
@@ -118,42 +156,71 @@ const loadComments = useCallback(async () => {
     ]);
   }
 
-async function handleDeleteComment(commentId) {
-  try {
-    await deleteComment(commentId);
-    setComments((current) => current.filter((comment) => comment.id !== commentId));
-  } catch (e) {
-    Alert.alert('Kunde inte ta bort kommentaren', e.message);
+  async function handleDeleteComment(commentId) {
+    try {
+      await deleteComment(commentId);
+      setComments((current) => current.filter((comment) => comment.id !== commentId));
+    } catch (e) {
+      Alert.alert('Kunde inte ta bort kommentaren', e.message);
+    }
   }
-}
+
+  // Kommentarsdelen har fyra lägen: laddar, fel, tom eller lista.
+  function renderComments() {
+    if (isLoadingComments) {
+      return <ActivityIndicator color={colors.primary} />;
+    }
+    if (commentsError) {
+      return (
+        <View style={styles.commentsError}>
+          <ErrorMessage message="Kunde inte hämta kommentarerna." />
+          <PrimaryButton title="Försök igen" variant="secondary" onPress={loadComments} />
+        </View>
+      );
+    }
+    if (comments.length === 0) {
+      return <Text style={styles.empty}>Inga kommentarer än.</Text>;
+    }
+    return (
+      <View style={styles.comments}>
+        {comments.map((comment) => (
+          <CommentItem
+            key={comment.id}
+            comment={comment}
+            onDelete={user?.id === comment.author.id ? () => confirmDeleteComment(comment) : undefined}
+          />
+        ))}
+      </View>
+    );
+  }
 
   if (isLoadingPost) {
     return (
       <View style={styles.screen}>
-        <LoadingView message="Hämtar inlägget..."/>
+        <LoadingView message="Hämtar inlägget..." />
       </View>
     );
   }
 
   if (errorPost) {
+    // 404: inlägget finns inte, t.ex. för att någon tagit bort det. Inget att försöka igen med.
     const notFound = errorPost.status === 404;
     return (
       <View style={styles.screen}>
         <ErrorView
-          title={notFound ? 'Inlägget finns inte' : 'Inlägget gick inte att hänmta'}
-          message={notFound ? 'Det kan ha tagits bort' : errorPost.message}
+          title={notFound ? 'Inlägget finns inte' : 'Inlägget gick inte att hämta'}
+          message={notFound ? 'Det kan ha tagits bort.' : errorPost.message}
           onRetry={notFound ? undefined : loadPost}
         />
       </View>
     );
   }
 
-  const isOwner = user !== null && user.id === post.author.id;
   const isEdited = post.updatedAt !== post.createdAt;
 
   return (
-    <ScrollView 
-      style={styles.screen} 
+    <ScrollView
+      style={styles.screen}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
       automaticallyAdjustKeyboardInsets
@@ -176,47 +243,13 @@ async function handleDeleteComment(commentId) {
 
       <View style={styles.actions}>
         <PrimaryButton title="Dela inlägget" variant="secondary" onPress={handleShare} />
-        {isOwner ? (
-          <>
-            <PrimaryButton
-              title="Redigera"
-              onPress={() => navigation.navigate('EditPost', { postId: post.id })}
-              disabled={isDeleting}
-            />
-            <PrimaryButton
-              title="Ta bort"
-              variant="danger"
-              onPress={confirmDelete}
-              loading={isDeleting}
-            />
-          </>
-        ) : null}
       </View>
 
       <Text style={styles.sectionTitle} accessibilityRole="header">
         Kommentarer{isLoadingComments ? '' : ` (${comments.length})`}
       </Text>
 
-      {isLoadingComments ? (
-        <ActivityIndicator color={colors.primary} />
-      ) : commentsError ? (
-        <View style={styles.commentsError}>
-          <ErrorMessage message="Kunde inte hämta kommentarerna." />
-          <PrimaryButton title="Försök igen" variant="secondary" onPress={loadComments} />
-        </View>
-      ) : comments.length === 0 ? (
-        <Text style={styles.empty}>Inga kommentarer än.</Text>
-      ) : (
-        <View style={styles.comments}>
-          {comments.map((comment) => (
-            <CommentItem 
-            key={comment.id} 
-            comment={comment}
-            onDelete={user?.id === comment.author.id ? () => confirmDeleteComment(comment) : undefined}
-             />
-          ))}
-        </View>
-      )}
+      {renderComments()}
 
       {isLoggedIn ? (
         <CommentForm onSubmit={handleAddComment} />
@@ -225,8 +258,8 @@ async function handleDeleteComment(commentId) {
           title="Logga in för att kommentera"
           variant="secondary"
           onPress={() => navigation.navigate('ProfileTab')}
-      />
-)}
+        />
+      )}
     </ScrollView>
   );
 }
@@ -243,6 +276,13 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerSpinner: {
+    width: 44,
+  },
   category: {
     fontSize: 14,
     fontWeight: '600',
@@ -252,10 +292,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: colors.text,
-  },
-  meta: {
-    fontSize: 14,
-    color: colors.textMuted,
   },
   details: {
     flexDirection: 'row',
