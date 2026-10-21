@@ -39,9 +39,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    setUnauthorizedHandler(() => {
-      clearSession();
-    });
+    setUnauthorizedHandler(clearSession);
     return () => setUnauthorizedHandler(null);
   }, [clearSession]);
 

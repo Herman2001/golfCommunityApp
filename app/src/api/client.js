@@ -56,6 +56,7 @@ export async function apiRequest(path, { method = 'GET', body } = {}) {
     clearTimeout(timeoutId);
   }
 
+  // Gick bra att hämta, men inget innehåll. T.ex DELETE som lyckades.
   if (response.status === 204) {
     return null;
   }
