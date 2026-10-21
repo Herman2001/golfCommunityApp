@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { fetchPosts } from '../api/posts';
-import { fetchCategories } from '../api/categories';
 import PostCard from '../components/posts/PostCard';
 import CategoryFilter from '../components/posts/CategoryFilter';
 import LoadingView from '../components/ui/LoadingView';
@@ -9,6 +9,7 @@ import ErrorView from '../components/ui/ErrorView';
 import EmptyState from '../components/ui/EmptyState';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import { colors } from '../constants/colors';
+import { useCategories } from '../hooks/useCategories';
 
 function Separator() {
   return <View style={styles.separator} />;
@@ -16,22 +17,17 @@ function Separator() {
 
 export default function PostListScreen({ navigation, route}) {
   const [posts, setPosts] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchCategories()
-      .then(setCategories)
-      .catch((e) => console.warn('Kunde inte hämta kategorier', e.message));
-  }, []);
+  const { categories } = useCategories();
 
-const loadPosts = useCallback(async ({ refreshing = false } = {}) => {
+const loadPosts = useCallback(async ({ refreshing = false, quiet = false } = {}) => {
   if (refreshing) {
     setIsRefreshing(true);
-  } else {
+  } else if (!quiet){
     setIsLoading(true);
     setPosts([]);
   }
@@ -48,10 +44,17 @@ const loadPosts = useCallback(async ({ refreshing = false } = {}) => {
   }
 }, [selectedCategory]);
 
-  // Körs vid start och varje gång kategorin byts (då skapas loadPosts om).
-  useEffect(() => {
-    loadPosts();
-  }, [loadPosts]);
+// Körs när skärmen visas och när kategorin byts.
+// Ny kategori ger en vanlig laddning. Kommer man bara tillbaka till listan
+// hämtas den om tyst, så att nya och ändrade inlägg syns utan att listan blinkar.
+const loadedCategory = useRef(undefined);
+useFocusEffect(
+  useCallback(() => {
+    const categoryChanged = loadedCategory.current !== selectedCategory;
+    loadedCategory.current = selectedCategory;
+    loadPosts({ quiet: !categoryChanged });
+  }, [loadPosts, selectedCategory])
+);
 
   const deletedPostId = route.params?.deletedPostId;
   useEffect(() => {
@@ -129,7 +132,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 640,
     alignSelf: 'center',
-    padding: 16,
+    padding: 16, 
   },
   header: {
     gap: 12,
