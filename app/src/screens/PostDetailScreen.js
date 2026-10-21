@@ -12,6 +12,7 @@ import LoadingView from '../components/ui/LoadingView';
 import { colors } from '../constants/colors';
 import { formatPrice, formatRelativeDate } from '../utils/format';
 import CommentForm from '../components/posts/CommentForm';
+import AuthorInfo from '../components/posts/AuthorInfo';
 
 
 export default function PostDetailScreen({ route, navigation }) {
@@ -159,10 +160,10 @@ async function handleDeleteComment(commentId) {
     >
       <Text style={styles.category}>{post.category.name}</Text>
       <Text style={styles.title} accessibilityRole="header">{post.title}</Text>
-      <Text style={styles.meta}>
-        {post.author.username} · {formatRelativeDate(post.createdAt)}
-        {isEdited ? ' · redigerad' : ''}
-      </Text>
+      <AuthorInfo
+        author={post.author}
+        subtitle={`${formatRelativeDate(post.createdAt)}${isEdited ? ' · redigerad' : ''}${isOwner ? ' · ditt inlägg' : ''}`}
+      />
 
       {post.price != null || post.location ? (
         <View style={styles.details}>
