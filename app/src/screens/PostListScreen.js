@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { fetchPosts } from '../api/posts';
@@ -15,7 +15,7 @@ function Separator() {
   return <View style={styles.separator} />;
 }
 
-export default function PostListScreen({ navigation, route}) {
+export default function PostListScreen({ navigation}) {
   const [posts, setPosts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,13 +55,6 @@ useFocusEffect(
     loadPosts({ quiet: !categoryChanged });
   }, [loadPosts, selectedCategory])
 );
-
-  const deletedPostId = route.params?.deletedPostId;
-  useEffect(() => {
-    if (deletedPostId) {
-      setPosts((current) => current.filter((post) => post.id !== deletedPostId));
-    }
-  }, [deletedPostId]);
 
   function renderEmpty() {
     if (isLoading) {

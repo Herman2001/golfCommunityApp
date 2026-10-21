@@ -98,7 +98,7 @@ const loadComments = useCallback(async () => {
     try {
       await deletePost(post.id);
       Alert.alert('Inlägget är borttaget');
-      navigation.popTo('PostList', {deletedPostId: post.id});
+      navigation.goBack();
     } catch (e) {
       setIsDeleting(false);
       Alert.alert('Kunde inte ta bort inlägget', e.message);
