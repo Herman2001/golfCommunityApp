@@ -33,3 +33,8 @@ export function updatePost(id, post) {
 export function deletePost(id) {
   return apiRequest(`/api/posts/${id}`, { method: 'DELETE' });
 }
+
+// För att hämta inlägg kopplat till den inloggade användaren. Används på profilsidan.
+export function fetchMyPosts({page = 0, size = 50} = {} ) {
+  return apiRequest(`/api/users/me/posts?page=${page}&size=${size}`);
+}

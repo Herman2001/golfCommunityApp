@@ -43,7 +43,11 @@ function ProfileNavigator() {
   return (
     <ProfileStack.Navigator>
       {isLoggedIn ? (
-        <ProfileStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profil' }} />
+        <>
+          <ProfileStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profil' }} />
+          <ProfileStack.Screen name="PostDetail" component={PostDetailScreen} options={{ title: 'Inlägg' }} />
+          <ProfileStack.Screen name="EditPost" component={EditPostScreen} options={{ title: 'Redigera inlägg' }} />
+        </>
       ) : (
         <>
           <ProfileStack.Screen name="Login" component={LoginScreen} options={{ title: 'Logga in' }} />
