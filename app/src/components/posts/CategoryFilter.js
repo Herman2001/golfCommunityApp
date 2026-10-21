@@ -4,8 +4,8 @@ import { colors } from '../../constants/colors';
 /**
  * Vågrät rad med kategorier att filtrera på. selected är kategorins slug, eller null för "Alla".
  */
-export default function CategoryFilter({ categories, selected, onSelect }) {
-  const options = [{ slug: null, name: 'Alla' }, ...categories];
+export default function CategoryFilter({ categories, selected, onSelect, showAll = true }) {
+  const options = showAll ? [{ slug: null, name: 'Alla' }, ...categories] : categories;
 
   return (
     <ScrollView
@@ -20,7 +20,7 @@ export default function CategoryFilter({ categories, selected, onSelect }) {
             key={category.slug ?? 'all'}
             onPress={() => onSelect(category.slug)}
             accessibilityRole="button"
-            accessibilityLabel={`Visa ${category.name}`}
+            accessibilityLabel={`${category.name}`}
             accessibilityState={{ selected: isSelected }}
             style={[styles.chip, isSelected && styles.chipSelected]}
           >
