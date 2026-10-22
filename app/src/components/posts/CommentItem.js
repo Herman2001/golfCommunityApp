@@ -6,10 +6,11 @@ export default function CommentItem({ comment, onDelete, isPostAuthor = false })
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.meta}>
-          {comment.author.username}
-          {isPostAuthor ? ' (skapare)' : ''} · {formatRelativeDate(comment.createdAt)}
-        </Text>
+        <View style={styles.authorRow}>
+          <Text style={styles.meta}>{comment.author.username}</Text>
+          <Text style={styles.meta}>· {formatRelativeDate(comment.createdAt)}</Text>
+          {isPostAuthor ? <Text style={styles.badge}>Skapare</Text> : null}
+        </View>
         {onDelete ? (
           <Pressable
             onPress={onDelete}
@@ -34,6 +35,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  authorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 1,
+  },
+  badge: {
+    fontSize: 8,
+    fontWeight: '600',
+    color: colors.primary,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
   },
   header: {
     flexDirection: 'row',
