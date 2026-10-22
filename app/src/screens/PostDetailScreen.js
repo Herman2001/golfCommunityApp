@@ -14,6 +14,7 @@ import LoadingView from '../components/ui/LoadingView';
 import PrimaryButton from '../components/ui/PrimaryButton';
 import { colors } from '../constants/colors';
 import { formatPrice, formatRelativeDate } from '../utils/format';
+import Divider from '../components/ui/Divider';
 
 export default function PostDetailScreen({ route, navigation }) {
   const { postId } = route.params;
@@ -65,7 +66,6 @@ export default function PostDetailScreen({ route, navigation }) {
   }, [loadPost, loadComments]);
 
   // När skärmen visas igen (t.ex. efter redigering) hämtas inlägget om i bakgrunden.
-  // Första gången hoppas över, eftersom useEffect ovan redan hämtar det.
   const isFirstFocus = useRef(true);
   useFocusEffect(
     useCallback(() => {
@@ -80,7 +80,6 @@ export default function PostDetailScreen({ route, navigation }) {
   );
 
   // Visar ikonerna för redigera och ta bort i rubrikraden, men bara för inläggets ägare.
-  // Måste stå före de tidiga return-satserna nedan, eftersom hooks alltid ska anropas i samma ordning.
   useLayoutEffect(() => {
     if (!isOwner) {
       navigation.setOptions({ headerRight: undefined });
@@ -203,7 +202,7 @@ export default function PostDetailScreen({ route, navigation }) {
   }
 
   if (errorPost) {
-    // 404: inlägget finns inte, t.ex. för att någon tagit bort det. Inget att försöka igen med.
+    // 404: inlägget finns inte, t.ex. för att någon tagit bort det.
     const notFound = errorPost.status === 404;
     return (
       <View style={styles.screen}>
@@ -239,7 +238,11 @@ export default function PostDetailScreen({ route, navigation }) {
         </View>
       ) : null}
 
+      <Divider/>
+
       <Text style={styles.body}>{post.body}</Text>
+
+       <Divider/>
 
       <View style={styles.actions}>
         <PrimaryButton title="Dela inlägget" variant="secondary" onPress={handleShare} />

@@ -5,5 +5,6 @@ export const colors = {
   text: '#1A1A1A',
   textMuted: '#5F6B63',
   border: '#DDE3DE',
+  divider: '#666363',
   error: '#B3261E',
 };
