@@ -1,10 +1,6 @@
 package se.golfCommunity.post;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 /**
  * Används både när ett inlägg skapas (POST) och när det uppdateras (PUT).
@@ -23,6 +19,7 @@ public record PostRequest(
         Long categoryId,
 
         @Size(max = 500, message = "Bildlänken är för lång.")
+        @Pattern(regexp = "^/uploads/[a-f0-9-]+\\.(jpg|png|webp)$", message = "Ogiltig bild.")
         String imageUrl,
 
         @PositiveOrZero(message = "Priset kan inte vara negativt.")
