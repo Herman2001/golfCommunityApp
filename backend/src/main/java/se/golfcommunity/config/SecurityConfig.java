@@ -32,7 +32,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Öppet för alla
                         .requestMatchers("/api/auth/**", "/api/health", "/error").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/posts/**", "/api/categories").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/posts/**", "/api/categories", "/uploads/**").permitAll()
                         // Allt annat (skapa, ändra, ta bort, profil) kräver inloggning
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth

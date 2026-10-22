@@ -1,6 +1,10 @@
 spring:
   application:
     name: golf-community-api
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
   datasource:
     # Standardvärdena matchar compose.yaml och används bara lokalt.
     # I molnet sätts DB_URL, DB_USERNAME och DB_PASSWORD som miljövariabler.
@@ -27,3 +31,5 @@ app:
   seed:
     # Skapar två demoanvändare och några inlägg om databasen saknar inlägg.
     demo-data: ${SEED_DEMO_DATA:true}
+  uploads:
+    dir: ${UPLOADS_DIR:uploads}
