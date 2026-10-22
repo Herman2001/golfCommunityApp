@@ -2,12 +2,13 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../../constants/colors';
 import { formatRelativeDate } from '../../utils/format';
 
-export default function CommentItem({ comment, onDelete }) {
+export default function CommentItem({ comment, onDelete, isPostAuthor = false }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.meta}>
-          {comment.author.username} · {formatRelativeDate(comment.createdAt)}
+          {comment.author.username}
+          {isPostAuthor ? ' (skapare)' : ''} · {formatRelativeDate(comment.createdAt)}
         </Text>
         {onDelete ? (
           <Pressable

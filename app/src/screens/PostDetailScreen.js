@@ -186,6 +186,7 @@ export default function PostDetailScreen({ route, navigation }) {
           <CommentItem
             key={comment.id}
             comment={comment}
+            isPostAuthor={comment.author.id === post.author.id}
             onDelete={user?.id === comment.author.id ? () => confirmDeleteComment(comment) : undefined}
           />
         ))}
