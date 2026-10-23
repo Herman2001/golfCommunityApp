@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { ActivityIndicator, Alert, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Image, ActivityIndicator, Alert, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { deletePost, fetchPost } from '../api/posts';
 import { createComment, deleteComment, fetchComments } from '../api/comments';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +15,7 @@ import PrimaryButton from '../components/ui/PrimaryButton';
 import { colors } from '../constants/colors';
 import { formatPrice, formatRelativeDate } from '../utils/format';
 import Divider from '../components/ui/Divider';
+import { imageUri } from '../api/client';
 
 export default function PostDetailScreen({ route, navigation }) {
   const { postId } = route.params;
@@ -241,6 +242,14 @@ export default function PostDetailScreen({ route, navigation }) {
 
       <Divider/>
 
+      {post.imageUrl ? (
+        <Image
+          source={{ uri: imageUri(post.imageUrl) }}
+          style={styles.image}
+          accessibilityLabel={`Bild till inlägget ${post.title}`}
+        />
+        ) : null}
+
       <Text style={styles.body}>{post.body}</Text>
 
        <Divider/>
@@ -336,5 +345,12 @@ const styles = StyleSheet.create({
   empty: {
     fontSize: 15,
     color: colors.textMuted,
+  },
+  image: {
+    width: '100%',
+    aspectRatio: 4 / 3,
+    borderRadius: 12,
+    marginBottom: 16,
+    backgroundColor: colors.divider,
   },
 });

@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../../constants/colors';
 import { formatPrice, formatRelativeDate } from '../../utils/format';
+import { imageUri } from '../../api/client';
 
 export default function PostCard({ post, onPress }) {
   const posterData = `${post.author.username} · ${formatRelativeDate(post.createdAt)}`;
@@ -13,18 +14,27 @@ export default function PostCard({ post, onPress }) {
       accessibilityHint="Öppnar inlägget"
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
-      <View style={styles.topRow}>
-        <Text style={styles.category}>{post.category.name}</Text>
-        {post.price != null ? <Text style={styles.price}>{formatPrice(post.price)}</Text> : null}
+      <View style={styles.row}>
+        <View style={styles.content}>
+          <Text style={styles.category}>{post.category.name}</Text>
+          <Text style={styles.title} numberOfLines={2}>{post.title}</Text>
+          {post.price != null ? <Text style={styles.price}>{formatPrice(post.price)}</Text> : null}
+          <Text style={styles.body} numberOfLines={2}>{post.body}</Text>
+
+          <Text style={styles.posterData}>
+            {posterData}
+            {post.location ? ` · ${post.location}` : ''}
+          </Text>
+        </View>
+
+        {post.imageUrl ? (
+          <Image
+            source={{ uri: imageUri(post.imageUrl) }}
+            style={styles.thumbnail}
+            accessibilityIgnoresInvertColors
+          />
+        ) : null}
       </View>
-
-      <Text style={styles.title} numberOfLines={2}>{post.title}</Text>
-      <Text style={styles.body} numberOfLines={2}>{post.body}</Text>
-
-      <Text style={styles.posterData}>
-        {posterData}
-        {post.location ? ` · ${post.location}` : ''}
-      </Text>
     </Pressable>
   );
 }
@@ -32,7 +42,6 @@ export default function PostCard({ post, onPress }) {
 const styles = StyleSheet.create({
   card: {
     padding: 16,
-    gap: 6,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.border,
@@ -40,6 +49,14 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.85,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  content: {
+    flex: 1,
+    gap: 6,
   },
   topRow: {
     flexDirection: 'row',
@@ -68,5 +85,11 @@ const styles = StyleSheet.create({
   posterData: {
     fontSize: 13,
     color: colors.textMuted,
+  },
+  thumbnail: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    backgroundColor: colors.divider,
   },
 });
