@@ -5,6 +5,7 @@ import PrimaryButton from '../ui/PrimaryButton';
 import ErrorMessage from '../ui/ErrorMessage';
 import CategoryFilter from './CategoryFilter';
 import { colors } from '../../constants/colors';
+import ImagePickerField from './ImagePickerField';
 
 const BUY_SELL_SLUG = 'kop-salj';
 
@@ -17,6 +18,10 @@ export default function PostForm({ categories, initialValues = {}, submitLabel, 
   const [categorySlug, setCategorySlug] = useState(initialValues.categorySlug ?? null);
   const [price, setPrice] = useState(initialValues.price != null ? String(initialValues.price) : '');
   const [location, setLocation] = useState(initialValues.location ?? '');
+
+  // För bilder i posts
+  const [imageUrl, setImageUrl] = useState(initialValues?.imageUrl ?? null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [fieldErrors, setFieldErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState(null);
@@ -34,7 +39,7 @@ export default function PostForm({ categories, initialValues = {}, submitLabel, 
 			errors.body = 'Skriv något i inlägget.';
 		}
 		if (!categorySlug) {
-			errors.categorySlug = 'Välj en kategori.';
+			errors.categoryId = 'Välj en kategori.';
 		}
 		if (isBuySell && price && !/^\d+$/.test(price)) {
 			errors.price = 'Ange priset i hela kronor, t.ex 2500.';
@@ -59,7 +64,7 @@ export default function PostForm({ categories, initialValues = {}, submitLabel, 
 			categoryId: category.id,
 			price: isBuySell && price ? Number(price) : null,
 			location: location.trim() || null,
-			imageUrl: initialValues.imageUrl ?? null,
+			imageUrl: imageUrl,
 		};
 
 		setIsSubmitting(true);
@@ -67,7 +72,7 @@ export default function PostForm({ categories, initialValues = {}, submitLabel, 
 			await onSubmit(payload);
 		} catch (e) {
 			setErrorMessage(e.message);
-			setFieldErrors(e.fieldErros == {});
+			setFieldErrors(e.fieldErrors ?? {});
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -76,6 +81,8 @@ export default function PostForm({ categories, initialValues = {}, submitLabel, 
 	return (
     <View style={styles.container}>
       <ErrorMessage message={errorMessage} />
+
+      <ImagePickerField value={imageUrl} onChange={setImageUrl} onUploadingChange={setIsUploadingImage} />
 
       <FormInput
         label="Rubrik"
@@ -130,7 +137,7 @@ export default function PostForm({ categories, initialValues = {}, submitLabel, 
         maxLength={100}
       />
 
-      <PrimaryButton title={submitLabel} onPress={handleSubmit} loading={isSubmitting} />
+<PrimaryButton title={submitLabel} onPress={handleSubmit} loading={isSubmitting || isUploadingImage} />
     </View>
   );
 }

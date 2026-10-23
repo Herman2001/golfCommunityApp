@@ -30,13 +30,15 @@ export function setUnauthorizedHandler(handler) {
 }
 
 export async function apiRequest(path, { method = 'GET', body } = {}) {
-  const headers = { Accept: 'application/json' };
-  if (body !== undefined) {
-    headers['Content-Type'] = 'application/json';
-  }
-  if (authToken) {
-    headers.Authorization = `Bearer ${authToken}`;
-  }
+const isFormData = body instanceof FormData;
+
+const headers = {};
+if (body && !isFormData) {
+  headers['Content-Type'] = 'application/json';
+}
+if (authToken) {
+  headers.Authorization = `Bearer ${authToken}`;
+}
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -46,7 +48,7 @@ export async function apiRequest(path, { method = 'GET', body } = {}) {
     response = await fetch(`${API_URL}${path}`, {
       method,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: isFormData ? body : body ? JSON.stringify(body) : undefined,
       signal: controller.signal,
     });
   } catch (error) {
@@ -74,4 +76,8 @@ export async function apiRequest(path, { method = 'GET', body } = {}) {
   }
 
   return data;
+}
+
+export function imageUri(path) {
+  return path ? `${API_URL}${path}` : null;
 }
