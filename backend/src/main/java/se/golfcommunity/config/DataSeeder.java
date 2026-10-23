@@ -11,6 +11,7 @@ import se.golfCommunity.category.Category;
 import se.golfCommunity.category.CategoryRepository;
 import se.golfCommunity.comment.Comment;
 import se.golfCommunity.comment.CommentRepository;
+import se.golfCommunity.image.ImageStorageService;
 import se.golfCommunity.post.Post;
 import se.golfCommunity.post.PostRepository;
 import se.golfCommunity.user.User;
@@ -35,6 +36,7 @@ public class DataSeeder implements CommandLineRunner {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ImageStorageService imageStorageService;
     private final boolean seedDemoData;
 
     public DataSeeder(CategoryRepository categoryRepository,
@@ -42,12 +44,14 @@ public class DataSeeder implements CommandLineRunner {
                       PostRepository postRepository,
                       CommentRepository commentRepository,
                       PasswordEncoder passwordEncoder,
+                      ImageStorageService imageStorageService,
                       @Value("${app.seed.demo-data:false}") boolean seedDemoData) {
         this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
         this.passwordEncoder = passwordEncoder;
+        this.imageStorageService = imageStorageService;
         this.seedDemoData = seedDemoData;
     }
 
@@ -85,23 +89,23 @@ public class DataSeeder implements CommandLineRunner {
         Post driverQuestion = post("Vilken driver för hcp 20?",
                 "Funderar på att byta ut min gamla driver. Spelar på hcp 20 och slicar gärna. "
                         + "Har någon tips på en förlåtande modell som inte kostar skjortan?",
-                questions, demo, null, null, 2);
+                questions, demo, null, null, 2, null);
 
         Post ironSet = post("Säljes: järnset 5–PW, regular-skaft",
                 "Välskött järnset, spelat två säsonger. Greppen bytta i våras. Kan mötas upp i Stockholm.",
-                buySell, golfaren, 2500, "Stockholm", 5);
+                buySell, golfaren, 2500, "Stockholm", 5, "seed-images/golfklubbor.jpg");
 
         post("Söker spelpartner helger i södra Stockholm",
                 "Hcp 14, spelar helst tidigt på lördagsmorgonen. Alla nivåer välkomna, det viktiga är att ha kul!",
-                partner, demo, null, "Farsta", 9);
+                partner, demo, null, "Farsta", 9, null);
 
         post("Tips: spela banor i solnedgång",
                 "Många klubbar har billigare twilight-greenfee på kvällarna. Perfekt för att få in en runda efter jobbet.",
-                tips, golfaren, null, null, 26);
+                tips, golfaren, null, null, 26, "seed-images/sunset.jpg");
 
         post("Hur ofta byter ni grepp?",
                 "Mina grepp känns hala efter en säsong. Hur ofta brukar ni byta, och gör ni det själva?",
-                questions, golfaren, null, null, 50);
+                questions, golfaren, null, null, 50, null);
 
         commentRepository.saveAll(List.of(
                 new Comment(driverQuestion, golfaren, "Kolla på en driver med draw-bias, det hjälper mot slicen."),
@@ -124,11 +128,14 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private Post post(String title, String body, Category category, User author,
-                      Integer price, String location, int hoursAgo) {
+                      Integer price, String location, int hoursAgo, String imagePath) {
         Post post = new Post(title, body, category, author);
         post.setPrice(price);
         post.setLocation(location);
         post.setCreatedAt(Instant.now().minus(Duration.ofHours(hoursAgo)));
+        if (imagePath != null) {
+            post.setImageUrl(imageStorageService.storeSeedImage(imagePath));
+        }
         return postRepository.save(post);
     }
 }

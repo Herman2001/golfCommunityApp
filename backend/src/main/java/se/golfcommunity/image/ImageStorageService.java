@@ -1,11 +1,13 @@
 package se.golfCommunity.image;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import se.golfCommunity.common.BadRequestException;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,6 +52,16 @@ public class ImageStorageService {
             throw new IllegalStateException("Kunde inte spara bilden", e);
         }
 
+        return "/uploads/" + filename;
+    }
+
+    public String storeSeedImage(String resourcePath) {
+        String filename = UUID.randomUUID() + ".jpg";
+        try (InputStream in = new ClassPathResource(resourcePath).getInputStream()) {
+            Files.copy(in, uploadDir.resolve(filename));
+        } catch (IOException e) {
+            throw new IllegalStateException("Kunde inte spara bilden", e);
+        }
         return "/uploads/" + filename;
     }
 }
