@@ -41,11 +41,21 @@ export default function ImagePickerField({value, onChange, onUploadingChange}) {
       ]);
       return;
     }
-    handleResult(await ImagePicker.launchCameraAsync(PICKER_OPTIONS));
+    try {
+      handleResult(await ImagePicker.launchCameraAsync(PICKER_OPTIONS));
+    } catch (error) {
+      console.warn('Kameran kunde inte öppnas', error);
+      Alert.alert('Kameran är inte tillgänglig');
+    }
   }
 
   async function pickFromLibrary() {
-    handleResult(await ImagePicker.launchImageLibraryAsync(PICKER_OPTIONS));
+    try {
+      handleResult(await ImagePicker.launchImageLibraryAsync(PICKER_OPTIONS));
+    } catch (error) {
+      console.warn('Kunde inte öppna galleriet', error);
+      Alert.alert('Galleriet är inte tillgängligt');
+    }
   }
 
   function showOptions() {
