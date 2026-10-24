@@ -58,11 +58,6 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 6,
   },
-  topRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
   category: {
     fontSize: 13,
     fontWeight: '600',

@@ -1,7 +1,5 @@
 name: golf-community
 
-# Lokal PostgreSQL för utveckling. Starta med: docker compose up -d
-# Uppgifterna här används bara lokalt på din dator.
 services:
   postgres:
     image: postgres:17

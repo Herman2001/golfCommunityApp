@@ -12,20 +12,20 @@ export function useCategories() {
   const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
-		setIsLoading(true);
-		setError(null);
-		try {
-				setCategories(await fetchCategories());
-		} catch (e) {
-				setError(e.message);
-		} finally {
-				setIsLoading(false);
-		}
-	},[]);
+    setIsLoading(true);
+    setError(null);
+    try {
+        setCategories(await fetchCategories());
+    } catch (e) {
+        setError(e.message);
+    } finally {
+        setIsLoading(false);
+    }
+  },[]);
 
   useEffect(() => {
-		load();
+    load();
    },[load]);
 
-	 return { categories, isLoading, error, reload: load};
+   return { categories, isLoading, error, reload: load};
 } 

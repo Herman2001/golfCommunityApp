@@ -14,25 +14,25 @@ const PICKER_OPTIONS = {
 };
 
 export default function ImagePickerField({value, onChange, onUploadingChange}) {
-	const [isUploading, setIsUploading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
-	async function handleResult(result) {
-		if (result.canceled) return;
+  async function handleResult(result) {
+    if (result.canceled) return;
 
-		setIsUploading(true);
-		onUploadingChange?.(true);
-		try {
-			const { url } = await uploadImage(result.assets[0]);
-			onChange(url);
-		} catch (e) {
-			Alert.alert('Kunde inte ladda upp bilden', e.message);
-		} finally {
-			setIsUploading(false);
-			onUploadingChange?.(false);
-		}
-	}
+    setIsUploading(true);
+    onUploadingChange?.(true);
+    try {
+      const { url } = await uploadImage(result.assets[0]);
+      onChange(url);
+    } catch (e) {
+      Alert.alert('Kunde inte ladda upp bilden', e.message);
+    } finally {
+      setIsUploading(false);
+      onUploadingChange?.(false);
+    }
+  }
 
-	async function takePhoto() {
+  async function takePhoto() {
     const { granted } = await ImagePicker.requestCameraPermissionsAsync();
     if (!granted) {
       Alert.alert('Kameran är inte tillåten', 'Du kan ge appen tillgång till kameran i inställningarna.', [

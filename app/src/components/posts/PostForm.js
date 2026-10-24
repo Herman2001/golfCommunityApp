@@ -13,7 +13,7 @@ const BUY_SELL_SLUG = 'kop-salj';
  * Formulär för att skapa eller redigera ett inlägg.
  */
 export default function PostForm({ categories, initialValues = {}, submitLabel, onSubmit,}) {
-	const [title, setTitle] = useState(initialValues.title ?? '');
+  const [title, setTitle] = useState(initialValues.title ?? '');
   const [body, setBody] = useState(initialValues.body ?? '');
   const [categorySlug, setCategorySlug] = useState(initialValues.categorySlug ?? null);
   const [price, setPrice] = useState(initialValues.price != null ? String(initialValues.price) : '');
@@ -27,58 +27,58 @@ export default function PostForm({ categories, initialValues = {}, submitLabel, 
   const [errorMessage, setErrorMessage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-	// För att pris endast är relevant om det är köp / sälj inlägg.
-	const isBuySell = categorySlug === BUY_SELL_SLUG;
+  // För att pris endast är relevant om det är köp / sälj inlägg.
+  const isBuySell = categorySlug === BUY_SELL_SLUG;
 
-	function validate() {
-		const errors = {};
-		if (!title.trim()) {
-			errors.title = 'Ange en rubrik.';
-		}
-		if (!body.trim()) {
-			errors.body = 'Skriv något i inlägget.';
-		}
-		if (!categorySlug) {
-			errors.categoryId = 'Välj en kategori.';
-		}
-		if (isBuySell && price && !/^\d+$/.test(price)) {
-			errors.price = 'Ange priset i hela kronor, t.ex 2500.';
-		}
-		return errors;
-	}
+  function validate() {
+    const errors = {};
+    if (!title.trim()) {
+      errors.title = 'Ange en rubrik.';
+    }
+    if (!body.trim()) {
+      errors.body = 'Skriv något i inlägget.';
+    }
+    if (!categorySlug) {
+      errors.categoryId = 'Välj en kategori.';
+    }
+    if (isBuySell && price && !/^\d+$/.test(price)) {
+      errors.price = 'Ange priset i hela kronor, t.ex 2500.';
+    }
+    return errors;
+  }
 
-	async function handleSubmit() {
-		const errors = validate();
-		setFieldErrors(errors);
-		setErrorMessage(null);
-		if (Object.keys(errors).length > 0) {
-			return;
-		}
+  async function handleSubmit() {
+    const errors = validate();
+    setFieldErrors(errors);
+    setErrorMessage(null);
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
 
-		
-		const category = categories.find((c) => c.slug === categorySlug);
+    
+    const category = categories.find((c) => c.slug === categorySlug);
 
-		const payload = {
-			title: title.trim(),
-			body: body.trim(),
-			categoryId: category.id,
-			price: isBuySell && price ? Number(price) : null,
-			location: location.trim() || null,
-			imageUrl: imageUrl,
-		};
+    const payload = {
+      title: title.trim(),
+      body: body.trim(),
+      categoryId: category.id,
+      price: isBuySell && price ? Number(price) : null,
+      location: location.trim() || null,
+      imageUrl: imageUrl,
+    };
 
-		setIsSubmitting(true);
-		try {
-			await onSubmit(payload);
-		} catch (e) {
-			setErrorMessage(e.message);
-			setFieldErrors(e.fieldErrors ?? {});
-		} finally {
-			setIsSubmitting(false);
-		}
-	}
+    setIsSubmitting(true);
+    try {
+      await onSubmit(payload);
+    } catch (e) {
+      setErrorMessage(e.message);
+      setFieldErrors(e.fieldErrors ?? {});
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
-	return (
+  return (
     <View style={styles.container}>
       <ErrorMessage message={errorMessage} />
 
