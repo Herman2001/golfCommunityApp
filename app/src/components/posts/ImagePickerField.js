@@ -8,7 +8,7 @@ import { colors } from '../../constants/colors';
 
 const PICKER_OPTIONS = {
     mediaTypes:['images'],
-    allwsEditing: true,
+    allowsEditing: true,
     aspect: [4, 3],
     quality: 0.7,
 };
