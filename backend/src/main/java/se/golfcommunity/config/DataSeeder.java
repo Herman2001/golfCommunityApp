@@ -93,7 +93,7 @@ public class DataSeeder implements CommandLineRunner {
 
         Post ironSet = post("Säljes: järnset 5–PW, regular-skaft",
                 "Välskött järnset, spelat två säsonger. Greppen bytta i våras. Kan mötas upp i Stockholm.",
-                buySell, golfaren, 2500, "Stockholm", 5, "seed-images/golfklubbor.jpg");
+                buySell, golfaren, 2500, "Stockholm", 5, "seed-images/golfklubbor.png");
 
         post("Söker spelpartner helger i södra Stockholm",
                 "Hcp 14, spelar helst tidigt på lördagsmorgonen. Alla nivåer välkomna, det viktiga är att ha kul!",

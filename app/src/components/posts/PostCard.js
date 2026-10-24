@@ -31,6 +31,7 @@ export default function PostCard({ post, onPress }) {
           <Image
             source={{ uri: imageUri(post.imageUrl) }}
             style={styles.thumbnail}
+            resizeMode='resize'
             accessibilityIgnoresInvertColors
           />
         ) : null}
