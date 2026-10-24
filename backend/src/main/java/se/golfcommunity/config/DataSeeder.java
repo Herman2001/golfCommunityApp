@@ -107,6 +107,58 @@ public class DataSeeder implements CommandLineRunner {
                 "Mina grepp känns hala efter en säsong. Hur ofta brukar ni byta, och gör ni det själva?",
                 questions, golfaren, null, null, 50, null);
 
+        post("Säljes: golfbag på ställ, nästan ny",
+                "Lätt bärbag med 14 fack och regnhuva. Använd ett fåtal rundor, säljes då jag fått en vagnbag.",
+                buySell, demo, 900, "Uppsala", 60, null);
+
+        post("Någon som vill spela 9 hål efter jobbet?",
+                "Hcp 22 och vill komma ut oftare på vardagskvällar. Kan spela tisdagar eller torsdagar efter kl 17.",
+                partner, golfaren, null, "Solna", 72, null);
+
+        post("Hur tränar ni på puttningen hemma?",
+                "Tappar alldeles för många slag på greenen. Är en puttmatta värd pengarna, eller finns det bättre övningar?",
+                questions, demo, null, null, 80, null);
+
+        post("Tips: gå banan baklänges på rangen",
+                "Spela banans hål i huvudet på rangen: välj klubba och mål precis som på banan. Mycket bättre träning än att slå 50 bollar med samma klubba.",
+                tips, golfaren, null, null, 96, null);
+
+        post("Köpes: vänsterhänta wedgar",
+                "Letar efter en 52° och en 56° för vänsterhänta. Får gärna vara begagnade så länge spåren är okej.",
+                buySell, golfaren, null, "Göteborg", 110, null);
+
+        post("Fyrboll söker två spelare till lördag",
+                "Vi är två som spelar 18 hål på lördag förmiddag och söker två till. Alla handicap välkomna, vi tar det lugnt.",
+                partner, demo, null, "Täby", 120, null);
+
+        post("Vad har ni för bollar på vintern?",
+                "Lönar det sig att köpa mjukare bollar när det är kallt, eller märks ingen skillnad för en vanlig amatör?",
+                questions, golfaren, null, null, 140, null);
+
+        post("Säljes: avståndsmätare med slope",
+                "Fungerar felfritt, nytt batteri och fodral ingår. Slope-funktionen går att stänga av för tävling.",
+                buySell, demo, 1500, "Stockholm", 160, null);
+
+        post("Tips: spela från de främre tee-utslagen",
+                "Testa att flytta fram en tee ibland. Man får fler inspel med korta järn och rundan går snabbare. Roligare golf helt enkelt!",
+                tips, demo, null, null, 190, null);
+
+        post("Hur kommer man igång med tävlingsgolf?",
+                "Har spelat i två år och vill testa en klubbtävling. Hur fungerar det med anmälan och vad behöver man tänka på?",
+                questions, demo, null, null, 220, null);
+
+        post("Söker träningskompis till rangen",
+                "Vill träna mer strukturerat under hösten. Ses gärna en gång i veckan och filmar varandras sving.",
+                partner, golfaren, null, "Nacka", 260, null);
+
+        post("Säljes: golfskor storlek 43",
+                "Vattentäta skor med mjuka dubbar, använda en säsong. Bra skick, säljes pga fel storlek.",
+                buySell, golfaren, 450, "Västerås", 300, null);
+
+        post("Tips: skriv ner statistik efter rundan",
+                "Räkna fairways, greener och puttar efter varje runda. Efter några rundor ser man tydligt var slagen försvinner.",
+                tips, demo, null, null, 340, null);
+
         commentRepository.saveAll(List.of(
                 new Comment(driverQuestion, golfaren, "Kolla på en driver med draw-bias, det hjälper mot slicen."),
                 new Comment(driverQuestion, demo, "Tack! Ska provslå några i helgen."),
