@@ -67,33 +67,6 @@ Lösenord sparas aldrig lokalt. Övrig data hämtas från API:t och hålls i sta
 - **Kamera och bildgalleri (expo-image-picker):** lägg till en bild när ett inlägg skapas eller redigeras. Appen hanterar nekad behörighet (med länk till inställningarna), avbrutet val, kamera eller galleri som inte är tillgängligt och fel vid uppladdning.
 - **Dela (Share):** dela ett inlägg via telefonens delningsmeny.
 
-## Projektstruktur
-
-```
-golfCommunityApp/
-├── app/        React Native-appen (Expo)
-│   └── src/
-│       ├── api/          Anrop till backend (client.js samlar fetch, token och felhantering)
-│       ├── components/   Återanvändbara komponenter (form/, posts/, ui/)
-│       ├── constants/    Färger
-│       ├── context/      AuthContext: inloggning, utloggning och token
-│       ├── hooks/        Egna hooks, t.ex. useCategories
-│       ├── navigation/   Flikar och stackar
-│       ├── screens/      En fil per skärm
-│       └── utils/        Formatering av datum och pris
-├── backend/    Spring Boot-API:t
-│   └── src/main/java/se/golfCommunity/
-│       ├── auth/       Registrering, inloggning och JWT
-│       ├── category/   Kategorier
-│       ├── comment/    Kommentarer
-│       ├── common/     Felhantering och gemensamma svarstyper
-│       ├── config/     Säkerhet, JWT, bildmappen och demodata
-│       ├── image/      Uppladdning av bilder
-│       ├── post/       Inlägg: CRUD, filtrering, sortering och sidindelning
-│       └── user/       Användare och profil
-└── docs/       Skärmdumpar till README
-```
-
 ## Kom igång
 
 ### Krav
